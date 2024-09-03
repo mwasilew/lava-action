@@ -16,6 +16,8 @@ var postData = JSON.stringify({
     'definition' : file
 });
 
+const tokenString = 'Token ${lava_token}'
+
 var options = {
   hostname: lava_url,
   port: 443,
@@ -24,7 +26,7 @@ var options = {
   headers: {
        'Content-Type': 'application/json',
        'Content-Length': postData.length,
-       'Authorization': 'Token ${lava_token}'
+       'Authorization': tokenString
      }
 };
 
