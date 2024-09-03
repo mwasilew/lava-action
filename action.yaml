@@ -18,7 +18,3 @@ runs:
   #  image: 'Dockerfile'
   using: 'node20'
   main: 'submit.js'
-  args:
-    - ${{ inputs.job-definition }}
-    - ${{ inputs.lava-token }}
-    - ${{ inputs.lava-url }}
