@@ -1,0 +1,22 @@
+name: 'Submit LAVA job'
+description: 'Greet someone and record the time'
+inputs:
+  job-definition:
+    description: 'Test job definition to submit'
+    required: true
+  lava-token:
+    description: 'Authentication token for job submission'
+    required: true
+  lava-url:
+    description: 'URL of LAVA instance'
+    required: true
+outputs:
+  job-id:
+    description: 'Stringified version of job ID list'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.job-definition }}
+    - ${{ inputs.lava-token }}
+    - ${{ inputs.lava-url }}
