@@ -6,7 +6,7 @@ jobs:
     name: submit lava job
     steps:
       - name: submit
-        uses: mwasilew/lava-action@v1
+        uses: mwasilew/lava-action@v2
         with:
           lava-token: ${{ secrets.LAVA_TOKEN }}
           lava-url: "https://lava.infra.foundries.io"
