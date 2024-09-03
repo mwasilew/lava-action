@@ -13,14 +13,21 @@ def main():
 
     token = os.environ["INPUT_LAVA-TOKEN"]
     lava_input_url = os.environ["INPUT_LAVA-URL"]
-    lava_job = os.environ["INPUT_JOB-DEFINITION"]
+    lava_job_path = os.environ["INPUT_JOB-DEFINITION"]
 
     if not token:
         print("Token missing")
         sys.exit(1)
 
+    try:
+        with open(lava_job_path, "r") as lava_file:
+            lava_job = lava_file.read()
+    except IOError:
+        print("Error with provided file")
+        sys.exit(1)
+
     if not lava_job:
-        print("Job definition missing")
+        print("Job definition path missing")
         sys.exit(1)
 
     # parse LAVA URL
