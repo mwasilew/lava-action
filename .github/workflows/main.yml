@@ -10,7 +10,7 @@ jobs:
       - name: show
         run: "ls -la"
       - name: submit
-        uses: mwasilew/lava-action@v9
+        uses: mwasilew/lava-action@v10
         with:
           lava-token: ${{ secrets.LAVA_TOKEN }}
           lava-url: "lava.infra.foundries.io"
