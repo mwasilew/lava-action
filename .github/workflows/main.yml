@@ -10,9 +10,9 @@ jobs:
       - name: show
         run: "ls -la"
       - name: submit
-        uses: mwasilew/lava-action@v10
+        uses: mwasilew/lava-action@v11
         with:
-          lava-token: ${{ secrets.LAVA_TOKEN }}
-          lava-url: "lava.infra.foundries.io"
-          job-definition: "lava.yaml"
+          lava_token: ${{ secrets.LAVA_TOKEN }}
+          lava_url: "lava.infra.foundries.io"
+          job_definition: "lava.yaml"
 
