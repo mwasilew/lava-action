@@ -40,7 +40,7 @@ def main():
         # exit with error
         print("Incorrect URL, location missing")
         sys.exit(1)
-    lava_url = f"{lava_url_parts.scheme}://{lava_url_parts.netloc}/jobs/"
+    lava_url = f"{lava_url_parts.scheme}://{lava_url_parts.netloc}/api/v0.2/jobs/"
     authentication = {
         "Authorization": "Token %s" % token,
     }
