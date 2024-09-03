@@ -1,0 +1,68 @@
+actions:
+- deploy:
+    dtb:
+      url: https://kciapistagingstorage1.file.core.windows.net/staging/kbuild-gcc-12-arm64-66d6f8007c487471628231f1/dtbs/broadcom/bcm2711-rpi-4-b.dtb?sv=2022-11-02&ss=f&srt=sco&sp=r&se=2024-10-17T19:19:12Z&st=2023-10-17T11:19:12Z&spr=https&sig=sLmFlvZHXRrZsSGubsDUIvTiv%2BtzgDq6vALfkrtWnv8%3D
+    kernel:
+      type: image
+      url: https://kciapistagingstorage1.file.core.windows.net/staging/kbuild-gcc-12-arm64-66d6f8007c487471628231f1/Image?sv=2022-11-02&ss=f&srt=sco&sp=r&se=2024-10-17T19:19:12Z&st=2023-10-17T11:19:12Z&spr=https&sig=sLmFlvZHXRrZsSGubsDUIvTiv%2BtzgDq6vALfkrtWnv8%3D
+    modules:
+      compression: xz
+      url: https://kciapistagingstorage1.file.core.windows.net/staging/kbuild-gcc-12-arm64-66d6f8007c487471628231f1/modules.tar.xz?sv=2022-11-02&ss=f&srt=sco&sp=r&se=2024-10-17T19:19:12Z&st=2023-10-17T11:19:12Z&spr=https&sig=sLmFlvZHXRrZsSGubsDUIvTiv%2BtzgDq6vALfkrtWnv8%3D
+    os: oe
+    ramdisk:
+      compression: gz
+      url: http://storage.kernelci.org/images/rootfs/buildroot/buildroot-baseline/20230703.0/arm64/rootfs.cpio.gz
+    timeout:
+      minutes: 10
+    to: tftp
+- boot:
+    commands: ramdisk
+    failure_retry: 3
+    method: u-boot
+    prompts:
+    - '/ #'
+    timeout:
+      minutes: 10
+    timeouts:
+      auto-login-action:
+        minutes: 2
+      bootloader-commands:
+        minutes: 3
+- test:
+    definitions:
+    - from: inline
+      lava-signal: kmsg
+      name: dmesg
+      path: inline/dmesg.yaml
+      repository:
+        metadata:
+          description: baseline test plan
+          environment:
+          - lava-test-shell
+          format: Lava-Test Test Definition 1.0
+          name: baseline
+          os:
+          - debian
+          scope:
+          - functional
+        run:
+          steps:
+          - 'KERNELCI_LAVA=y /bin/sh /opt/kernelci/dmesg.sh
+            '
+    timeout:
+      minutes: 1
+device_type: bcm2711-rpi-4-b
+job_name: '[kci-staging] 66d6ff667c48747162827bc7 baseline-arm64-qualcomm v6.11-rc5-62-g3bf71c4b18c1'
+priority: 10
+timeouts:
+  action:
+    minutes: 10
+  actions:
+    power-off:
+      seconds: 30
+  job:
+    minutes: 30
+  queue:
+    days: 2
+visibility: public
+

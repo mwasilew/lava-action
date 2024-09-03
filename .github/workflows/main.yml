@@ -5,8 +5,10 @@ jobs:
     runs-on: ubuntu-latest
     name: submit lava job
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
       - name: submit
-        uses: mwasilew/lava-action@v3
+        uses: mwasilew/lava-action@v4
         with:
           lava-token: ${{ secrets.LAVA_TOKEN }}
           lava-url: "https://lava.infra.foundries.io"
