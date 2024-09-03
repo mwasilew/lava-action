@@ -1,13 +1,13 @@
 name: 'Submit LAVA job'
 description: 'Greet someone and record the time'
 inputs:
-  job-definition:
+  job_definition:
     description: 'Test job definition to submit'
     required: true
-  lava-token:
+  lava_token:
     description: 'Authentication token for job submission'
     required: true
-  lava-url:
+  lava_url:
     description: 'URL of LAVA instance'
     required: true
 outputs:

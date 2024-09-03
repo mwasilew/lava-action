@@ -1,10 +1,13 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
-const job_definition_path = core.getInput('job-definition')
-const lava_token = core.getInput('lava-token')
-const lava_url = core.getInput('lava-url')
+//const job_definition_path = core.getInput('job-definition')
+//const lava_token = core.getInput('lava-token')
+//const lava_url = core.getInput('lava-url')
 
+const job_definition_path = core.getInput('job_definition')
+const lava_token = core.getInput('lava_token')
+const lava_url = core.getInput('lava_url')
 // read from file
 const fs = require ('fs');
 const file = fs.readFileSync(job_definition_path, 'utf-8');
@@ -16,7 +19,7 @@ var postData = JSON.stringify({
     'definition' : file
 });
 
-const tokenString = 'Token ${lava_token}'
+const tokenString = 'Token ' + lava_token
 
 var options = {
   hostname: lava_url,
