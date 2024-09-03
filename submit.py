@@ -54,6 +54,7 @@ def main():
         lava_job_ids = response.json().get("job_ids")
     else:
         print("Error response from LAVA server")
+        print(response.text)
         sys.exit(1)
 
     with open(os.path.abspath(os.environ["GITHUB_OUTPUT"]), "a") as output_file:
