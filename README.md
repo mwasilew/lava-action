@@ -24,8 +24,8 @@ The ID of a single node job or a list of IDs when submitting multi node job
 
 ## Example usage
 
-uses: mwasilew/lava-action@v1
-with:
-  lava-token: '<auth token>'
-  lava-url: 'https://example.lava.instance'
-  job-definition: 'job_name: basic tests ...'
+    uses: mwasilew/lava-action@v1
+    with:
+      lava-token: '<auth token>'
+      lava-url: 'https://example.lava.instance'
+      job-definition: 'job_name: basic tests ...'
