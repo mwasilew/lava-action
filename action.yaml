@@ -14,8 +14,10 @@ outputs:
   job-id:
     description: 'Stringified version of job ID list'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  #  using: 'docker'
+  #  image: 'Dockerfile'
+  using: 'node20'
+  main: 'submit.js'
   args:
     - ${{ inputs.job-definition }}
     - ${{ inputs.lava-token }}
