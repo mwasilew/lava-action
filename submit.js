@@ -18,6 +18,8 @@ const BackgroundColor = {
     error: "\x1b[41m",
     exception: "\x1b[45m",
     input: "\x1b[40m",
+    feedback: "\x1b[102m",
+    warning: "\x1b[103m",
 }
 // read from file
 const fs = require ('fs');
