@@ -49,7 +49,7 @@ var options = {
 };
 
 rp(options).then(
-    function( body ) { 
+    function( body ) {
         lava_job_ids = body.job_ids;
         job_id = lava_job_ids[0];
         log_start = 0;
@@ -118,6 +118,3 @@ rp(options).then(
         };
         recurseAll(promiseStack);
     });
-
-console.log(lava_job_ids);
-
