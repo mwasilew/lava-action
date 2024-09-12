@@ -137,11 +137,13 @@ async function main() {
 
     console.log("Job ID: ", jobId);
 
-    return await fetchAndParse(jobId, 0, host)
+    if ( wait_for_job == "true" ) {
+        return await fetchAndParse(jobId, 0, host)
+    }
+    return true
 }
 
 main().then((data) => {
-    console.log(data);
 }).catch((ex) => {
     console.log('Error running action');
     core.setFailed(ex.message);
