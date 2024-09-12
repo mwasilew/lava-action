@@ -15,4 +15,5 @@ jobs:
           lava_token: ${{ secrets.LAVA_TOKEN }}
           lava_url: "lava.infra.foundries.io"
           job_definition: "lava.yaml"
+          wait_for_job: "true"
 
