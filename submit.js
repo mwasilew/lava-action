@@ -19,7 +19,26 @@ const BackgroundColor = {
     warning: "\x1b[103m",
 }
 
-async function fetchAndParse(jobId, logStart, host) {
+const testResults = new Map();
+
+async function printResults(fail_action) {
+    console.log("Printing results")
+    var hasFailures = false;
+    var failedTest;
+    for ( let [key, value] of testResults ) {
+        console.log(key + ": " + value);
+        if ( value == "fail" ) {
+            hasFailures = true;
+            failedTest = key;
+        }
+    }
+    if ( hasFailures && fail_action == "true" ) {
+        console.log("Action failed because of test failure");
+        core.setFailed(failedTest);
+    }
+}
+
+async function fetchAndParse(jobId, logStart, host, fail_action_on_failure) {
     const jobStatusPath = "/api/v0.2/jobs/" + jobId + "/";
     const jobLogPath = "/api/v0.2/jobs/" + jobId + "/logs/?start=" + logStart;
 
@@ -41,7 +60,8 @@ async function fetchAndParse(jobId, logStart, host) {
     const { state } = jobStatus;
 
     if (state === "Finished") {
-        return [jobStatus, jobLog];
+        printResults(fail_action_on_failure);
+        return testResults;
     }
 
     if (state === "Submitted" || state === "Scheduled") {
@@ -57,6 +77,8 @@ async function fetchAndParse(jobId, logStart, host) {
                 const textFormat = BackgroundColor[lvl];
                 if (lvl === "results") {
                     console.log(`${textFormat}case: %s | definition: %s | result: %s ${ColorReset}`, msgCase, definition, result );
+                    const testFullName = definition + '/' + msgCase
+                    testResults.set(testFullName, result);
                 } else {
                     console.log(`${textFormat}${msg}${ColorReset}`);
                 }
@@ -65,7 +87,7 @@ async function fetchAndParse(jobId, logStart, host) {
         }
     }
 
-    return setTimeout(() => fetchAndParse(jobId, logStart, host), 5000);
+    return setTimeout(() => fetchAndParse(jobId, logStart, host, fail_action_on_failure), 5000);
 }
 
 
@@ -75,12 +97,14 @@ async function main() {
     let lava_token;
     let lava_url;
     let wait_for_job;
+    let fail_action_on_failure;
 
     try {
         job_definition_path = core.getInput("job_definition");
         lava_token = core.getInput("lava_token");
         lava_url = core.getInput("lava_url");
         wait_for_job = core.getInput("wait_for_job");
+        fail_action_on_failure = core.getInput("fail_action_on_failure");
     } catch (ex) {
         console.log("Error reading input variables");
         core.setFailed(err.message);
@@ -138,7 +162,7 @@ async function main() {
     console.log("Job ID: ", jobId);
 
     if ( wait_for_job == "true" ) {
-        return await fetchAndParse(jobId, 0, host)
+        return await fetchAndParse(jobId, 0, host, fail_action_on_failure);
     }
     return true
 }
@@ -147,4 +171,4 @@ main().then((data) => {
 }).catch((ex) => {
     console.log('Error running action');
     core.setFailed(ex.message);
-});
+})

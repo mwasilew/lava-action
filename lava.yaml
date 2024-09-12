@@ -47,8 +47,26 @@ actions:
           - functional
         run:
           steps:
-          - 'KERNELCI_LAVA=y /bin/sh /opt/kernelci/dmesg.sh
-            '
+          - 'KERNELCI_LAVA=y /bin/sh /opt/kernelci/dmesg.sh'
+    definitions:
+    - from: inline
+      name: testfail
+      path: inline/fail.yaml
+      repository:
+        metadata:
+          description: baseline test plan
+          environment:
+          - lava-test-shell
+          format: Lava-Test Test Definition 1.0
+          name: baseline
+          os:
+          - debian
+          scope:
+          - functional
+        run:
+          steps:
+          - lava-test-case failed-test-01 --result fail
+
     timeout:
       minutes: 1
 device_type: bcm2711-rpi-4-b

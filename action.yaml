@@ -12,6 +12,8 @@ inputs:
     required: true
   wait_for_job:
     description: 'Wait for job completion and stream logs'
+  fail_action_on_failure:
+    description: 'Marks action failed in any test result is "fail". Requires wait_for_job set to "true"'
 
 runs:
   using: 'node20'
