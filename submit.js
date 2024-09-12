@@ -1,12 +1,9 @@
+const fs = require("fs");
+
 const core = require('@actions/core');
 const github = require('@actions/github');
+const undici = require('undici');
 const YAML = require('yaml')
-
-const job_definition_path = core.getInput('job_definition')
-const lava_token = core.getInput('lava_token')
-const lava_url = core.getInput('lava_url')
-const wait_for_job = core.getInput('wait_for_job')
-// colors
 
 const ColorReset = "\x1b[0m";
 
@@ -21,100 +18,131 @@ const BackgroundColor = {
     feedback: "\x1b[102m",
     warning: "\x1b[103m",
 }
-// read from file
-const fs = require ('fs');
-var lava_job_ids;
-var file;
-try {
-    file = fs.readFileSync(job_definition_path, 'utf-8');
-} catch (err) {
-    console.log("Error reading job definition file")
-    core.setFailed(err.message);
-}
-// submit to lava
-const request = require('request');
-const rp = require('request-promise');
 
-const tokenString = 'Token ' + lava_token
+async function fetchAndParse(jobId, logStart, host) {
+    const jobStatusPath = "/api/v0.2/jobs/" + jobId + "/";
+    const jobLogPath = "/api/v0.2/jobs/" + jobId + "/logs/?start=" + logStart;
 
-var options = {
-    url: 'https://' + lava_url + '/api/v0.2/jobs/',
-    method: 'POST',
-    headers: {
-       'Authorization': tokenString
-    },
-    json: {
-       'definition' : file
+    const [jobStatusResponse, jobLogResponse] = await Promise.all([
+        undici.request(new URL(jobStatusPath, host)),
+        undici.request(new URL(jobLogPath, host))
+    ]);
+
+    const { body: jobStatusBody, statucCode: jobStatusCode } = jobStatusResponse;
+    const { body: jobLogBody, statusCode: jobLogStatusCode } = jobLogResponse;
+
+    const jobStatus = await jobStatusBody.json();
+    const jobLog = await jobLogBody.text();
+
+    if (jobStatusCode >= 400){
+        throw new Error('Error retrieving lava job');
     }
-};
 
-rp(options).then(
-    function( body ) {
-        lava_job_ids = body.job_ids;
-        job_id = lava_job_ids[0];
-        log_start = 0;
-        console.log("Job ID: ", job_id);
-        var job_status_options = {
-            url: 'https://' + lava_url + '/api/v0.2/jobs/' + job_id + '/',
-            method: 'GET',
-            headers: {
-                'Authorization': tokenString
-            },
-            json: true,
-            simple: false,
-            resolveWithFullResponse: false
-        };
-        var job_log_options = {
-            url: 'https://' + lava_url + '/api/v0.2/jobs/' + job_id + '/logs/?start=' + log_start,
-            method: 'GET',
-            headers: {
-                'Authorization': tokenString
-            },
-            json: true,
-            simple: false,
-            resolveWithFullResponse: false
-        };
+    const { state } = jobStatus;
 
-        var job_status = rp(job_status_options).promise();
-        var job_log = rp(job_log_options).promise();
-        var promiseStack = []
-        promiseStack.push(job_status)
-        promiseStack.push(job_log)
-        function recurseAll(parray) {
-            return Promise.all([rp(job_status_options).promise(), rp(job_log_options).promise()]).then( values => {
-                job_status = values[0];
-                job_log = values[1];
-                if ( job_status.state == "Submitted" || job_status.state == "Scheduled" ) {
-                    console.log("Job state: ", job_status.state);
+    if (state === "Finished") {
+        return [jobStatus, jobLog];
+    }
+
+    if (state === "Submitted" || state === "Scheduled") {
+        console.log("Job state: %s", state);
+    } else {
+        if (jobLogStatusCode == 200) {
+            yaml_log = YAML.parse(jobLog);
+
+            for (const line of yaml_log) {
+                const { lvl, msg } = line;
+                const { case: msgCase, definition, result } = msg;
+
+                const textFormat = BackgroundColor[lvl];
+                if (lvl === "results") {
+                    console.log(`${textFormat}case: %s | definition: %s | result: %s ${ColorReset}`, msgCase, definition, result );
                 } else {
-                    if ( job_log.length ) {
-                        yaml_log = YAML.parse(job_log)
-                        for ( line of yaml_log ) {
-                            var textFormat = BackgroundColor[line.lvl];
-                            if ( line.lvl == "results" ) {
-                                console.log(`${textFormat}case: ${line.msg.case} | definition: ${line.msg.definition} | result: ${line.msg.result} ${ColorReset}`);
-                            } else {
-                                console.log(`${textFormat}${line.msg}${ColorReset}`);
-                            }
-                            log_start += 1;
-                        }
-                        job_log_options = {
-                          url: 'https://' + lava_url + '/api/v0.2/jobs/' + job_id + '/logs/?start=' + log_start,
-                          method: 'GET',
-                          headers: {
-                            'Authorization': tokenString
-                            },
-                          json: true,
-                          simple: false,
-                          resolveWithFullResponse: false
-                        };
-                    }
+                    console.log(`${textFormat}${msg}${ColorReset}`);
                 }
-                if ( job_status.state == "Finished" ) {
-                    return values
-                }
-                return setTimeout(() => recurseAll([rp(job_status_options).promise(), rp(job_log_options).promise()]), 5000);
-            }).catch ( error => { console.log ("Request Error") });
+                logStart += 1;
+            }
+        }
+    }
+
+    return setTimeout(() => fetchAndParse(jobId, logStart, host), 5000);
+}
+
+
+async function main() {
+    let file;
+    let job_definition_path;
+    let lava_token;
+    let lava_url;
+    let wait_for_job;
+
+    try {
+        job_definition_path = core.getInput("job_definition");
+        lava_token = core.getInput("lava_token");
+        lava_url = core.getInput("lava_url");
+        wait_for_job = core.getInput("wait_for_job");
+    } catch (ex) {
+        console.log("Error reading input variables");
+        core.setFailed(err.message);
+
+        return;
+    }
+
+    const tokenString = "Token " + lava_token;
+    const host = "https://" + lava_url;
+
+    try {
+        file = fs.readFileSync(job_definition_path, "utf-8");
+    } catch (err) {
+        console.log("Error reading job definition file");
+        core.setFailed(err.message);
+
+        return;
+    }
+
+    try {
+        const url = new URL("/api/v0.2/jobs/", host);
+        const options = {
+          method: "POST",
+          headers: {
+            'Authorization': tokenString,
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            definition: file,
+          }),
         };
-        recurseAll(promiseStack);
-    });
+
+        const { statusCode, body } = await undici.request(
+            url,
+            options
+        );
+
+        if (statusCode === 201) {
+            lavaJob = await body.json();
+        } else {
+            console.log("Error %s retrieving lava job", statusCode);
+            core.setFailed(await body.json());
+
+            return;
+        }
+    } catch (ex) {
+        console.log("Error retrieving lava job");
+        core.setFailed(ex.message);
+
+        return;
+    }
+
+    const jobId = lavaJob.job_ids[0];
+
+    console.log("Job ID: ", jobId);
+
+    return await fetchAndParse(jobId, 0, host)
+}
+
+main().then((data) => {
+    console.log(data);
+}).catch((ex) => {
+    console.log('Error running action');
+    core.setFailed(ex.message);
+});
