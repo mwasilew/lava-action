@@ -60,15 +60,6 @@ async function fetchAndParse(jobId, logStart, host, fail_action_on_failure) {
     const { state } = jobStatus;
     const { health } = jobStatus;
 
-    if (state === "Finished") {
-        printResults(fail_action_on_failure);
-        if (health === "Incomplete" || health === "Canceled") {
-            console.log("Action failed because of job failure");
-            core.setFailed(health);
-        }
-        return testResults;
-    }
-
     if (state === "Submitted" || state === "Scheduled") {
         console.log("Job state: %s", state);
     } else {
@@ -90,6 +81,15 @@ async function fetchAndParse(jobId, logStart, host, fail_action_on_failure) {
                 logStart += 1;
             }
         }
+    }
+
+    if (state === "Finished") {
+        printResults(fail_action_on_failure);
+        if (health === "Incomplete" || health === "Canceled") {
+            console.log("Action failed because of job failure");
+            core.setFailed(health);
+        }
+        return testResults;
     }
 
     return setTimeout(() => fetchAndParse(jobId, logStart, host, fail_action_on_failure), 5000);
