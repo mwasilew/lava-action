@@ -1,0 +1,20 @@
+on: [workflow_dispatch]
+
+jobs:
+  submit_lava_job:
+    runs-on: ubuntu-latest
+    name: submit lava job
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: show
+        run: "ls -la"
+      - name: submit
+        uses: mwasilew/lava-action@HEAD
+        with:
+          lava_token: ${{ secrets.LAVA_TOKEN }}
+          lava_url: "lava.infra.foundries.io"
+          job_definition: "lava_broken.yaml"
+          wait_for_job: "true"
+          fail_action_on_failure: "true"
+
