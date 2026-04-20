@@ -7,6 +7,18 @@ const undici = require('undici');
 const YAML = require('yaml')
 const ColorReset = "\033[0m";
 
+async function writeFileWithRetry(fileName, content) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            await fs.promises.writeFile(fileName, content);
+            return;
+        } catch (err) {
+            if (attempt === 2) throw err;
+            console.error("Write failed, retrying: " + err.message);
+        }
+    }
+}
+
 const BackgroundColor = {
     info: "\033[38;5;0;48;5;195m",
     debug: "\033[38;5;0;48;5;224m",
@@ -76,10 +88,11 @@ async function saveArtifacts(jobId, host, lava_token, save_result_as_artifact, r
         const fileName = "./" + resultsName + ".xml"
         console.log("Writing to: " + fileName);
         const resultsBody = await jobResultsBody.text();
-        await fs.writeFile(fileName, resultsBody, err => {
-            if (err) {
-                console.error(err);
-            }});
+        try {
+            await writeFileWithRetry(fileName, resultsBody);
+        } catch (err) {
+            console.error("Error writing results file: " + err.message);
+        }
         await fs.stat(fileName, (error, stats) => {
           if (error) {
             console.log(error);
@@ -284,10 +297,11 @@ async function main() {
         detailsBody.url = host + "/scheduler/job/" + jobId;
         const fileName = "./" + test_job_file_name_prefix + "test-job-" + jobId + ".json"
         console.log("Write job details to file");
-        await fs.writeFile(fileName, JSON.stringify(detailsBody), err => {
-            if (err) {
-                console.error(err);
-            }});
+        try {
+            await writeFileWithRetry(fileName, JSON.stringify(detailsBody));
+        } catch (err) {
+            console.error("Error writing job details file: " + err.message);
+        }
         await fs.stat(fileName, (error, stats) => {
           if (error) {
             console.log(error);
