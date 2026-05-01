@@ -136,41 +136,43 @@ async function fetchAndParse(settings) {
         console.log("Error retrieving job status");
         return setTimeout(() => fetchAndParse(settings), 5000);
     }
-    if (jobLogStatusCode >= 400) {
-        console.log("Error retrieving job logs");
-    }
 
     const jobStatus = await jobStatusBody.json();
-    const jobLog = await jobLogBody.text();
-
     const { state } = jobStatus;
     const { health } = jobStatus;
 
     if (state === "Submitted" || state === "Scheduled") {
-        console.log("Job state: %s", state);
-    } else {
-        if (jobLogStatusCode == 200) {
-            try {
-                yaml_log = YAML.parse(jobLog);
+        // Return if the job is in the queue
+        return setTimeout(() => fetchAndParse(settings), 5000);
+    }
 
-                for (const line of yaml_log) {
-                    const { lvl, msg } = line;
-                    const { case: msgCase, definition, result } = msg;
+    if (jobLogStatusCode >= 400) {
+        console.log("Error retrieving job logs");
+    }
 
-                    const textFormat = BackgroundColor[lvl];
-                    if (lvl === "results") {
-                        console.log(`${textFormat}case: %s | definition: %s | result: %s ${ColorReset}`, msgCase, definition, result );
-                        const testFullName = definition + '/' + msgCase
-                        testResults.set(testFullName, result);
-                    } else {
-                        console.log(`${textFormat}${msg}${ColorReset}`);
-                    }
-                    settings.logStart += 1;
+    const jobLog = await jobLogBody.text();
+
+    if (jobLogStatusCode == 200) {
+        try {
+            yaml_log = YAML.parse(jobLog);
+
+            for (const line of yaml_log) {
+                const { lvl, msg } = line;
+                const { case: msgCase, definition, result } = msg;
+
+                const textFormat = BackgroundColor[lvl];
+                if (lvl === "results") {
+                    console.log(`${textFormat}case: %s | definition: %s | result: %s ${ColorReset}`, msgCase, definition, result );
+                    const testFullName = definition + '/' + msgCase
+                    testResults.set(testFullName, result);
+                } else {
+                    console.log(`${textFormat}${msg}${ColorReset}`);
                 }
+                settings.logStart += 1;
             }
-            catch (error) {
-                console.log(error.message)
-            }
+        }
+        catch (error) {
+            console.log(error.message)
         }
     }
 
