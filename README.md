@@ -51,6 +51,20 @@ String that can be prepended to usual file name that contains job detail.
 Default is empty string and the default name of the file is `test-job-<jobID>.json`
 Prefix is added directly before the default name, so it is advised it ends with `-`
 
+## `fake_lava_submission`
+
+When set to `true` the action does not submit anything to LAVA. Instead it produces
+a JUNIT results file (`test-results-<jobID>.xml` by default, or the name set with
+`result_file_name`) in the same format a real LAVA `/junit/` response would have.
+A random 6 digit job ID is generated for the fake submission.
+If `save_job_details` is `true`, a matching `test-job-<jobID>.json` is produced as well.
+This is useful for exercising the workflow that consumes this action without access to
+a working LAVA instance. The fake results contain passing test cases, so
+`fail_action_on_failure` will not fail the action. Defaults to `false`.
+
+Note: `lava_token` and `lava_url` are still required inputs of the action, but any
+dummy values can be used when `fake_lava_submission` is `true`.
+
 
 ## Example usage
 

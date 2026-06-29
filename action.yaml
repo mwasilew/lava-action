@@ -31,6 +31,11 @@ inputs:
       This option is useful for keeping clean results in case of re-running test jobs.'
   test_job_file_name_prefix:
     description: 'Prefix for the job details filename. It will prepend the test-job-<job ID>.json'
+  fake_lava_submission:
+    description: 'Do not submit anything to LAVA. Instead produce a results file (and
+      optionally job details) compatible with a real LAVA submission. Useful for testing
+      the workflow that consumes this action without a working LAVA instance.'
+    default: false
 
 runs:
   using: 'node24'
