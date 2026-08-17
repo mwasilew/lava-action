@@ -36,6 +36,16 @@ inputs:
       optionally job details) compatible with a real LAVA submission. Useful for testing
       the workflow that consumes this action without a working LAVA instance.'
     default: false
+  fake_results:
+    description: 'Inline YAML (or JSON) describing what the fake submission should return.
+      Only used when fake_lava_submission is "true". Supported keys: job_id, job_index,
+      state, health, error, submitter, description and suites (list of
+      {name, cases: [{name, result, message}]} where result is pass, fail, skip or unknown).
+      Omit to get two passing cases in suite "0_fake-suite". The same spec always produces
+      the same results. The fake job ID is packed from GITHUB_RUN_NUMBER, GITHUB_RUN_ATTEMPT
+      and job_index, so it is unique by construction rather than by chance. Set job_index to
+      "${{ strategy.job-index }}" in a matrix, and to a distinct value per step if the action
+      is used more than once in one job.'
 
 runs:
   using: 'node24'
