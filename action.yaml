@@ -43,9 +43,11 @@ inputs:
       {name, cases: [{name, result, message}]} where result is pass, fail, skip or unknown).
       Omit to get two passing cases in suite "0_fake-suite". The same spec always produces
       the same results. The fake job ID is packed from GITHUB_RUN_NUMBER, GITHUB_RUN_ATTEMPT
-      and job_index, so it is unique by construction rather than by chance. Set job_index to
-      "${{ strategy.job-index }}" in a matrix, and to a distinct value per step if the action
-      is used more than once in one job.'
+      and job_index, so it is unique by construction rather than by chance. In a matrix set
+      job_index to the strategy.job-index context value, and to a distinct value per step if
+      the action is used more than once in one job. See the README for the exact syntax; it
+      cannot be spelled out here, because expressions in an action file are evaluated when
+      the action is loaded and the strategy context does not exist at that point.'
 
 runs:
   using: 'node24'
