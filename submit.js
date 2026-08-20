@@ -328,7 +328,13 @@ function parseFakeResults(specText) {
         }
     }
 
-    if (parsed.suites !== undefined && parsed.suites !== null) {
+    if (parsed.suites === undefined || parsed.suites === null) {
+        // Every key of the spec is optional and independent of the others, so a
+        // spec that says nothing about the results gets the same default as no
+        // spec at all. Without this, injecting a single unrelated key such as
+        // job_index silently turns a job into one that reports no tests.
+        spec.suites = DEFAULT_FAKE_SUITES;
+    } else {
         if (!Array.isArray(parsed.suites)) {
             throw new Error("suites must be a list");
         }
